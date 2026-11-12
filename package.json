@@ -1,0 +1,15 @@
+{
+  "name": "loja-laboratorio-burp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Laboratorio local e propositalmente vulneravel para apresentacao do Burp Suite",
+  "engines": { "node": ">=24.0.0" },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test",
+    "db:reset": "node scripts/reset-db.js"
+  },
+  "dependencies": { "express": "^5.1.0" }
+}
