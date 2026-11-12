@@ -1,6 +1,7 @@
 import express from 'express';
 import { fileURLToPath } from 'node:url';
 import { productsRouter } from './routes/products.js';
+import { ordersRouter } from './routes/orders.js';
 
 export function createApp(db) {
   const app = express();
@@ -10,6 +11,7 @@ export function createApp(db) {
   
   app.get('/api/health', (_req, res) => res.json({ status: 'ok', ambiente: 'laboratorio-local' }));
   app.use('/api/produtos', productsRouter(db));
+  app.use('/api/compras', ordersRouter(db));
 
 
   app.use(express.static(fileURLToPath(new URL('../public/', import.meta.url))));

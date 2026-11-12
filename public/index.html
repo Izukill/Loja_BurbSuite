@@ -33,6 +33,16 @@
 
     <div class="section-heading"><h2>Catálogo de produtos</h2><p id="status" role="status" aria-live="polite">Carregando…</p></div>
 
+    <section class="purchase-settings" aria-label="Configuração das compras">
+      <div class="field">
+        <label for="purchase-mode">Versão da compra</label>
+        <select id="purchase-mode">
+          <option value="vulneravel">Vulnerável (preço do cliente)</option>
+          <option value="corrigido">Corrigida (preço do banco)</option>
+        </select>
+      </div>
+      <p>Compra simulada. Este seletor é independente da versão da busca.</p>
+    </section>
     <section id="products" class="grid" aria-label="Produtos"></section>
   </main>
 

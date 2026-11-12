@@ -1,10 +1,10 @@
 # Loja Laboratório — Burp Suite
 
-Projeto acadêmico em JavaScript para demonstrar testes manuais com o Burp Suite. A aplicação contém **SQL injection intencional** e deve rodar exclusivamente no computador local, com dados fictícios.
+Projeto acadêmico em JavaScript para demonstrar testes manuais com o Burp Suite. A aplicação contém **SQL injection e confiança no preço do cliente intencionais** e deve rodar exclusivamente no computador local, com dados fictícios.
 
 ## Executar
 
-Requisito: Node.js 24 ou superior (SQLite nativo via `node:sqlite`). A API SQLite pode emitir aviso de recurso experimental em algumas versões do Node.
+Requisito: Node.js 24 ou superior (SQLite nativo via `node:sqlite`). A API SQLite pode emitir aviso de recurso experimental em algumas versões do Node. Além do Burb Suite para conseguir testar as vulnerabilidades
 
 ```powershell
 npm install
@@ -26,18 +26,29 @@ npm run db:reset
 - Interface de catálogo, busca e seletor entre busca vulnerável e corrigida.
 - Rota `GET /api/produtos?q=...&modo=vulneravel|corrigido`.
 - SQL injection reproduzível e correção por consulta parametrizada.
-- Roteiro da demonstração e testes HTTP das duas versões.
+- Compra fictícia por `POST /api/compras`, com quantidade de 1 a 10 e seletor independente entre preço do cliente (vulnerável) e preço do banco (corrigido).
+- Botão de simulação em cada produto e resultado do cálculo na interface. Nenhum pagamento, reserva de estoque ou pedido persistido.
+- Roteiro das duas demonstrações e testes HTTP de compra, adulteração, correção e regressão da busca.
 
-O seletor muda **somente a implementação da busca**. Não transforma a aplicação inteira em um sistema seguro.
+Cada seletor muda **somente seu módulo** (busca ou compra). Não transforma a aplicação inteira em um sistema seguro.
 
 ### O que falta:
 
 1. Cadastro/login com armazenamento vulnerável e corrigido de senhas; inspeção local para demonstrar a limitação do teste HTTP.
-2. Compra fictícia com preço adulterável e versão corrigida pelo preço do banco.
 
-Essas funcionalidades **ainda não estão implementadas**. Há pontos de integração em `src/app.js`; não existem botões de compra ou login que simulem funcionalidades prontas.
+Cadastro/login **ainda não está implementado** e deve demonstrar a limitação obrigatória do Burp. a tarefa restante está na [issue 01](docs/issues/01-contas-e-senhas.md).
 
-Leia [os contratos](docs/CONTRATOS.md) antes de começar. As tarefas completas estão em [docs/issues/README.md](docs/issues/README.md), prontas para copiar para o GitHub. Não foram publicadas como issues remotas.
+### Contrato da compra
+
+Enviar JSON com `Content-Type: application/json` para `POST /api/compras`:
+
+```json
+{"produtoId":1,"quantidade":1,"precoUnitarioCentavos":15990,"modo":"vulneravel"}
+```
+
+Sucesso: status 201 e `{ "produtoId": 1, "quantidade": 1, "totalCentavos": 15990, "modo": "vulneravel", "simulacao": true }`.
+
+`modo` aceita `vulneravel` (padrão) ou `corrigido`. Na versão vulnerável, preço deve ser um inteiro positivo em centavos. Na corrigida, ele é ignorado e pode ser omitido. As duas versões exigem produto publicado/existente e quantidade inteira de 1 a 10, rejeitando total fora do limite de inteiros seguros do JavaScript. Entradas inválidas retornam 400; produto inexistente/não publicado, 404.
 
 ## Demonstração
 
@@ -50,10 +61,11 @@ src/app.js                 configuração e integração de rotas
 src/server.js              inicialização em loopback
 src/database.js            catálogo e dados fictícios
 src/routes/products.js     busca vulnerável e corrigida
+src/routes/orders.js       compra simulada vulnerável e corrigida
 public/                    interface (única pasta servida por HTTP)
 scripts/reset-db.js        restauração do catálogo
-test/catalog.test.js       testes HTTP com SQLite em memória
-docs/                      contratos, roteiro e issues
+test/orders.test.js        testes HTTP com SQLite em memória
+docs/                      roteiro e issues
 ```
 
 ## Referências
