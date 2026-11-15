@@ -38,12 +38,71 @@
         <label for="purchase-mode">Versão da compra</label>
         <select id="purchase-mode">
           <option value="vulneravel">Vulnerável (preço do cliente)</option>
-          <option value="corrigido">Corrigida (preço do banco)</option>
+          <option value="corrigida">Corrigida (preço do banco)</option>
         </select>
       </div>
       <p>Compra simulada. Este seletor é independente da versão da busca.</p>
     </section>
     <section id="products" class="grid" aria-label="Produtos"></section>
+
+    <div class="section-heading">
+      <h2>Área de Contas (Demonstração de Armazenamento)</h2>
+    </div>
+
+    <section class="accounts-section" aria-label="Gerenciamento de contas">
+      <div class="accounts-panels">
+        <div class="account-card">
+          <h3>Cadastro de Usuário</h3>
+          <p class="account-desc">Cadastre um usuário com dados fictícios e escolha o modo de armazenamento.</p>
+          <form id="register-form">
+            <div class="field">
+              <label for="reg-username">Usuário fictício</label>
+              <input id="reg-username" name="usuario" type="text" maxlength="50" required placeholder="ex: aluno-demo" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="reg-password">Senha fictícia</label>
+              <input id="reg-password" name="senha" type="password" maxlength="128" required placeholder="ex: senha-ficticia" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="reg-mode">Modo de armazenamento</label>
+              <select id="reg-mode" name="modo">
+                <option value="vulneravel">Vulnerável (texto puro no banco)</option>
+                <option value="corrigido">Corrigido (scrypt com salt aleatório)</option>
+              </select>
+            </div>
+            <button type="submit">Cadastrar conta ↗</button>
+            <p id="reg-feedback" class="account-feedback" role="status" aria-live="polite"></p>
+          </form>
+        </div>
+
+        <div class="account-card">
+          <h3>Autenticação / Login</h3>
+          <p class="account-desc">Autentique para testar verificação de credenciais em cada modo.</p>
+          <form id="login-form">
+            <div class="field">
+              <label for="login-username">Usuário fictício</label>
+              <input id="login-username" name="usuario" type="text" maxlength="50" required placeholder="ex: aluno-demo" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="login-password">Senha fictícia</label>
+              <input id="login-password" name="senha" type="password" maxlength="128" required placeholder="ex: senha-ficticia" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="login-mode">Modo de autenticação</label>
+              <select id="login-mode" name="modo">
+                <option value="vulneravel">Vulnerável</option>
+                <option value="corrigido">Corrigido</option>
+              </select>
+            </div>
+            <button type="submit">Entrar ↗</button>
+            <p id="login-feedback" class="account-feedback" role="status" aria-live="polite"></p>
+          </form>
+        </div>
+      </div>
+      <p class="account-notice">
+        <strong>Atenção:</strong> Respostas HTTP não revelam a senha nem seu hash. Use <code>npm run accounts:inspect</code> no terminal para inspecionar localmente o banco SQLite e conferir o armazenamento.
+      </p>
+    </section>
   </main>
 
 

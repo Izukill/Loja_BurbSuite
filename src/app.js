@@ -2,8 +2,9 @@ import express from 'express';
 import { fileURLToPath } from 'node:url';
 import { productsRouter } from './routes/products.js';
 import { ordersRouter } from './routes/orders.js';
+import { accountsRouter } from './routes/accounts.js';
 
-export function createApp(db) {
+export function createApp(db, accountsDb = null) {
   const app = express();
   app.disable('x-powered-by');
   app.use(express.json({ limit: '16kb' }));
@@ -12,6 +13,9 @@ export function createApp(db) {
   app.get('/api/health', (_req, res) => res.json({ status: 'ok', ambiente: 'laboratorio-local' }));
   app.use('/api/produtos', productsRouter(db));
   app.use('/api/compras', ordersRouter(db));
+  if (accountsDb) {
+    app.use('/api/contas', accountsRouter(accountsDb));
+  }
 
 
   app.use(express.static(fileURLToPath(new URL('../public/', import.meta.url))));

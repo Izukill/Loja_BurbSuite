@@ -107,3 +107,75 @@ async function search() {
 form.addEventListener('submit', (event) => { event.preventDefault(); search(); });
 document.querySelector('#mode').addEventListener('change', search);
 search();
+
+const registerForm = document.querySelector('#register-form');
+const regFeedback = document.querySelector('#reg-feedback');
+const loginForm = document.querySelector('#login-form');
+const loginFeedback = document.querySelector('#login-feedback');
+
+if (registerForm) {
+  registerForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const submitBtn = registerForm.querySelector('button[type="submit"]');
+    const usuario = document.querySelector('#reg-username').value;
+    const senha = document.querySelector('#reg-password').value;
+    const modo = document.querySelector('#reg-mode').value;
+
+    regFeedback.className = 'account-feedback';
+    regFeedback.textContent = 'Cadastrando conta fictícia…';
+    submitBtn.disabled = true;
+
+    try {
+      const response = await fetch('/api/contas/cadastro', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ usuario, senha, modo })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.erro);
+
+      regFeedback.className = 'account-feedback success';
+      regFeedback.textContent = `Conta "${data.usuario}" cadastrada com sucesso no modo ${data.modo}. A resposta HTTP não contém senhas.`;
+      registerForm.reset();
+    } catch (err) {
+      regFeedback.className = 'account-feedback error';
+      regFeedback.textContent = err.message || 'Erro ao realizar cadastro.';
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+}
+
+if (loginForm) {
+  loginForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const submitBtn = loginForm.querySelector('button[type="submit"]');
+    const usuario = document.querySelector('#login-username').value;
+    const senha = document.querySelector('#login-password').value;
+    const modo = document.querySelector('#login-mode').value;
+
+    loginFeedback.className = 'account-feedback';
+    loginFeedback.textContent = 'Verificando credenciais…';
+    submitBtn.disabled = true;
+
+    try {
+      const response = await fetch('/api/contas/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ usuario, senha, modo })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.erro);
+
+      loginFeedback.className = 'account-feedback success';
+      loginFeedback.textContent = `Login efetuado com sucesso para "${data.usuario}" (${data.modo}). Nenhuma sessão foi iniciada nesta etapa.`;
+      loginForm.reset();
+    } catch (err) {
+      loginFeedback.className = 'account-feedback error';
+      loginFeedback.textContent = err.message || 'Falha na autenticação.';
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+}
+

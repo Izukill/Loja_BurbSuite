@@ -118,14 +118,109 @@ A consulta parametrizada trata a sequência como texto de busca, sem mudar a est
 
 O Burp possibilitou inspecionar, manipular e repetir a requisição. Na Community, o testador identificou a falha ao interpretar a resposta. Não houve Scanner automático nem alerta automático de SQL injection.
 
-## Demonstrações pendentes:
-### armazenamento de senhas
+## Demonstração — Armazenamento inseguro de senhas (Limitação do teste puramente por tráfego HTTP)
 
-Mostrar login/cadastro pelo Burp sem respostas contendo senhas, depois inspecionar código e banco local. No modo vulnerável, o valor fica em texto puro; na versão corrigida, em formato de hash apropriado com salt.
+### 1. Comportamento no navegador e observação pelo Burp Suite
 
-Com acesso somente a HTTP e sem vazamentos, não há evidência suficiente para o Burp determinar como a senha foi persistida. Não basta dizer “não apareceu alerta”: mostrar a falha no armazenamento e justificar a ausência de visibilidade. Revisão de código e inspeção autorizada do banco são as técnicas complementares.
+1. Na seção **Área de Contas**, cadastre um usuário fictício com o modo **Vulnerável**:
+   - Usuário: `aluno-demo`
+   - Senha: `senha-ficticia-123`
+   - Modo: `Vulnerável (texto puro no banco)`
+2. Cadastre outro usuário (ou o mesmo no modo corrigido):
+   - Usuário: `aluno-demo`
+   - Senha: `senha-ficticia-123`
+   - Modo: `Corrigido (scrypt com salt aleatório)`
+3. Cadastre um terceiro usuário com a mesma senha no modo corrigido:
+   - Usuário: `aluno-demo-2`
+   - Senha: `senha-ficticia-123`
+   - Modo: `Corrigido (scrypt com salt aleatório)`
+4. Realize o login no formulário com credenciais válidas e depois teste com senha errada.
 
-Consequência real: acesso indevido a banco ou backups revelaria senhas imediatamente. Usar apenas valores fictícios. A inspeção local feita pelo apresentador não é uma funcionalidade do Burp.
+### 2. Inspeção de tráfego HTTP no Burp Suite
+
+No Burp Suite (Proxy → HTTP history ou Repeater), observe as requisições e respostas de cadastro e login:
+
+```http
+POST /api/contas/cadastro HTTP/1.1
+Host: 127.0.0.1:3000
+Content-Type: application/json
+
+{"usuario":"aluno-demo","senha":"senha-ficticia-123","modo":"vulneravel"}
+```
+
+Resposta HTTP (201 Created):
+```http
+HTTP/1.1 201 Created
+Content-Type: application/json; charset=utf-8
+
+{"mensagem":"Conta cadastrada com sucesso.","usuario":"aluno-demo","modo":"vulneravel"}
+```
+
+E no login:
+```http
+POST /api/contas/login HTTP/1.1
+Host: 127.0.0.1:3000
+Content-Type: application/json
+
+{"usuario":"aluno-demo","senha":"senha-ficticia-123","modo":"vulneravel"}
+```
+
+Resposta HTTP (200 OK):
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+
+{"mensagem":"Autenticação realizada com sucesso.","usuario":"aluno-demo","modo":"vulneravel"}
+```
+
+**Observação crítica no Burp Suite:**
+Tanto no modo vulnerável quanto no modo corrigido:
+- As requisições HTTP enviam a senha pelo canal cliente-servidor (em texto claro ou HTTPS);
+- As respostas HTTP **jamais retornam a senha, o salt ou o hash**;
+- Não há qualquer erro, vazamento na resposta ou alerta gerado pelo Burp.
+
+A simples observação ou interceptação do tráfego HTTP **não permite determinar** como o servidor armazena as credenciais no disco ou banco de dados.
+
+### 3. Inspeção local do armazenamento no servidor
+
+Para verificar o que realmente ocorreu no servidor, execute o script de inspeção local (que roda no terminal, sem expor endpoint HTTP):
+
+```bash
+npm run accounts:inspect aluno-demo
+```
+
+Saída observada:
+```text
+================================================================================
+INSPEÇÃO LOCAL DO ARMAZENAMENTO DE CONTAS (data/contas.sqlite)
+Este script roda exclusivamente no terminal local para fins didáticos.
+Não existe endpoint HTTP que exponha estas informações.
+================================================================================
+
+[ID: 1] Usuário: aluno-demo | Modo: VULNERAVEL
+Data de criação: 2026-11-15 19:36:56
+    SENHA ARMAZENADA (TEXTO PURO - VULNERÁVEL): "senha-ficticia-123"
+   -> Falha: Senha salva diretamente sem salt ou derivação de chave.
+
+[ID: 2] Usuário: aluno-demo | Modo: CORRIGIDO
+Data de criação: 2026-11-15 19:36:56
+   HASH SEGURO (SCRYPT COM SALT ALEATÓRIO):
+   $scrypt$N=16384,r=8,p=1,k=64$fb4014e1c86baf2423aef89168dab1a1$8e38d8045a2600bade099a2273cf95597f6ad65aa8c832dcfac100fdf9edd2046e5ae9f2dbb95d2d6cddeec3f1222dc2294a9b77580bdeee454397fbe2566be7
+   -> Protegido: A senha original não pode ser revertida a partir do hash.
+================================================================================
+```
+
+E inspecionando todos os registros (`npm run accounts:inspect`), nota-se que `aluno-demo` e `aluno-demo-2`, mesmo compartilhando a exata mesma senha no modo corrigido, possuem hashes e salts totalmente diferentes, inviabilizando ataques por Rainbow Tables.
+
+### 4. Justificativa técnica e limites do Burp Suite
+
+- **Envio de senha vs. Persistência de senha:** O fato de o cliente enviar a senha na requisição (esperado em rotas de autenticação) não indica se o backend armazena o dado de forma segura ou insegura.
+- **Invisibilidade por tráfego HTTP:** Se o backend não vazar a senha em respostas, headers ou logs públicos, ferramentas de inspeção dinâmica de tráfego (DAST/Burp Suite) não têm como deduzir a fragilidade do armazenamento em repouso.
+- **Ausência de alerta ≠ Segurança:** A ausência de alertas no Burp não atesta que a aplicação é segura.
+- **Técnicas complementares:** A detecção desse tipo de vulnerabilidade depende fundamentalmente de **Revisão de Código (SAST)** e **Auditoria de Armazenamento/Banco de Dados**.
+- **Consequências reais:** Caso ocorra um vazamento do banco de dados (`contas.sqlite`) ou de backups, no modo vulnerável as credenciais de todos os usuários são expostas instantaneamente, permitindo ataques de credential stuffing e quebra de privacidade em massa. No modo corrigido (`scrypt` com salt aleatório), o custo computacional para quebra de cada senha por força bruta torna-se impraticável.
+
+---
 
 ## Fechamento
 

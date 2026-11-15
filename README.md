@@ -16,27 +16,37 @@ Abra http://127.0.0.1:3000. O servidor escuta somente em `127.0.0.1`.
 ```powershell
 npm run dev
 npm run db:reset
+npm run accounts:inspect
+npm run accounts:reset
 ```
 
-`dev` reinicia o servidor ao editar o código.`db:reset` restaura somente o catálogo fictício; execute com o servidor parado. O arquivo `data/catalogo.sqlite` é criado automaticamente no primeiro início e não deve ser versionado.
+`dev` reinicia o servidor ao editar o código. `db:reset` restaura somente o catálogo fictício; use `npm run accounts:reset` para limpar contas fictícias salvas em `data/contas.sqlite`. `accounts:inspect [usuario]` permite inspecionar o armazenamento local de contas sem expor nada via HTTP. Os arquivos `data/*.sqlite` são criados automaticamente e não são versionados.
 
-### Atualmente:
+### Funcionalidades implementadas:
 
-- Servidor Express e banco SQLite com quatro produtos públicos e um produto não publicado.
-- Interface de catálogo, busca e seletor entre busca vulnerável e corrigida.
-- Rota `GET /api/produtos?q=...&modo=vulneravel|corrigido`.
-- SQL injection reproduzível e correção por consulta parametrizada.
-- Compra fictícia por `POST /api/compras`, com quantidade de 1 a 10 e seletor independente entre preço do cliente (vulnerável) e preço do banco (corrigido).
-- Botão de simulação em cada produto e resultado do cálculo na interface. Nenhum pagamento, reserva de estoque ou pedido persistido.
-- Roteiro das duas demonstrações e testes HTTP de compra, adulteração, correção e regressão da busca.
+- Servidor Express e banco SQLite com catálogo de produtos e isolamento completo entre banco de catálogo (`catalogo.sqlite`) e banco de contas (`contas.sqlite`).
+- Interface com catálogo, busca, compras simuladas e área de gerenciamento de contas.
+- Rota `GET /api/produtos?q=...&modo=vulneravel|corrigido` (SQL injection intencional e correção parametrizada).
+- Compra fictícia por `POST /api/compras` com seletor de preço vulnerável (cliente) vs. corrigido (banco).
+- Cadastro e login em `POST /api/contas/cadastro` e `POST /api/contas/login` com dois modos de armazenamento:
+  - **Modo vulnerável:** senha fictícia persistida em texto puro no banco de dados.
+  - **Modo corrigido:** derivação de chave criptográfica segura via `scrypt` (`node:crypto`), salt criptográfico aleatório por senha e parâmetros (`N`, `r`, `p`, `k`) preservados para verificação em tempo constante (`timingSafeEqual`).
+- Respostas HTTP limpas e seguras: jamais retornam senhas, salts ou hashes nas respostas ou logs.
+- Script CLI de auditoria/inspeção local (`scripts/inspect-accounts.js`) para demonstrar como o armazenamento difere nos dois modos sem criar endpoints HTTP.
+- Suíte de testes automatizados completa (`npm test`) cobrindo produtos, compras e todas as regras de negócio de contas.
 
-Cada seletor muda **somente seu módulo** (busca ou compra). Não transforma a aplicação inteira em um sistema seguro.
+Cada seletor muda **somente seu respectivo módulo** (busca, compra ou contas). Não transforma a aplicação inteira em um sistema seguro.
 
-### O que falta:
+### Contratos da API de Contas
 
-1. Cadastro/login com armazenamento vulnerável e corrigido de senhas; inspeção local para demonstrar a limitação do teste HTTP.
-
-Cadastro/login **ainda não está implementado** e deve demonstrar a limitação obrigatória do Burp. a tarefa restante está na [issue 01](docs/issues/01-contas-e-senhas.md).
+- `POST /api/contas/cadastro`:
+  - Enviar: `{ "usuario": "aluno-demo", "senha": "senha-ficticia", "modo": "vulneravel" | "corrigido" }`
+  - Resposta (201 Created): `{ "mensagem": "Conta cadastrada com sucesso.", "usuario": "aluno-demo", "modo": "vulneravel" }` (sem senhas, salts ou hashes).
+  - Trata duplicidade (409 Conflict) e entradas inválidas/tamanhos excedidos (400 Bad Request).
+- `POST /api/contas/login`:
+  - Enviar: `{ "usuario": "aluno-demo", "senha": "senha-ficticia", "modo": "vulneravel" | "corrigido" }`
+  - Resposta (200 OK): `{ "mensagem": "Autenticação realizada com sucesso.", "usuario": "aluno-demo", "modo": "vulneravel" }` em caso de sucesso; 401 Unauthorized com `{ "erro": "Credenciais inválidas." }` em caso de falha.
+  - As consultas usam queries parametrizadas em ambos os modos. Esta etapa não cria nem finge conceder sessões HTTP.
 
 ### Contrato da compra
 
@@ -57,15 +67,18 @@ Siga [o roteiro do Burp](docs/DEMONSTRACAO.md). Com a Community, a identificaç�
 ## Organização
 
 ```text
-src/app.js                 configuração e integração de rotas
-src/server.js              inicialização em loopback
-src/database.js            catálogo e dados fictícios
-src/routes/products.js     busca vulnerável e corrigida
-src/routes/orders.js       compra simulada vulnerável e corrigida
-public/                    interface (única pasta servida por HTTP)
-scripts/reset-db.js        restauração do catálogo
-test/orders.test.js        testes HTTP com SQLite em memória
-docs/                      roteiro e issues
+src/app.js                   configuração e integração de rotas
+src/server.js                inicialização em loopback
+src/database.js              catálogo e dados fictícios (catalogo.sqlite)
+src/accountsDatabase.js      armazenamento isolado de contas e scrypt (contas.sqlite)
+src/routes/products.js       busca vulnerável e corrigida
+src/routes/orders.js         compra simulada vulnerável e corrigida
+src/routes/accounts.js       cadastro e login vulnerável e corrigido
+public/                      interface (HTML/CSS/JS servidos por HTTP)
+scripts/reset-db.js          restauração do catálogo e contas
+scripts/inspect-accounts.js  inspeção local de armazenamento de senhas
+test/                        testes automatizados com Node.js test runner
+docs/                        contratos e roteiro da demonstração
 ```
 
 ## Referências

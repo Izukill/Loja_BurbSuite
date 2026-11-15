@@ -219,6 +219,56 @@ button:disabled {
   opacity: 0.65;
   cursor: wait;
 }
+.accounts-section {
+  margin: 32px 0 48px;
+}
+.accounts-panels {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  margin-top: 16px;
+}
+.account-card {
+  background: #ffffff;
+  border: 1px solid #d8dfd1;
+  border-radius: 8px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+}
+.account-card h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+.account-desc {
+  font-size: 13px;
+  color: #59665c;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+.account-card form {
+  display: grid;
+  gap: 14px;
+}
+.account-feedback {
+  margin-top: 12px;
+  font-size: 13px;
+  min-height: 20px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.account-feedback.success {
+  color: #256029;
+}
+.account-feedback.error {
+  color: #b71c1c;
+}
+.account-notice {
+  margin-top: 20px;
+  font-size: 13px;
+  color: #4b5563;
+  line-height: 1.6;
+}
 .next {
   margin: 48px 0;
   border-top: 1px solid #d8dfd1;
