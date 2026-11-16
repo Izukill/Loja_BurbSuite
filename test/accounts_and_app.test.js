@@ -12,7 +12,7 @@ function createTestDatabases() {
       id INTEGER PRIMARY KEY,
       nome TEXT NOT NULL,
       descricao TEXT NOT NULL,
-      preco_centavos INTEGER NOT NULL CHECK (preco_centavos >= 0),
+      preco_reais REAL NOT NULL CHECK (preco_reais >= 0),
       publicado INTEGER NOT NULL DEFAULT 1 CHECK (publicado IN (0, 1))
     );
   `);

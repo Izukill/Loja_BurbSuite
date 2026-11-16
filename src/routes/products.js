@@ -16,13 +16,13 @@ export function productsRouter(db) {
       if (mode === 'vulneravel') {
 
         //modo vulneravel permitando sqlInjection passando a string para a consulta
-        const sql = `SELECT id, nome, descricao, preco_centavos FROM produtos
+        const sql = `SELECT id, nome, descricao, preco_reais FROM produtos
           WHERE publicado = 1 AND nome LIKE '%${query}%'`;
         products = db.prepare(sql).all();
       } else {
 
         //correção: a entrada é vinculada como dado e não altera a consulta
-        products = db.prepare(`SELECT id, nome, descricao, preco_centavos FROM produtos
+        products = db.prepare(`SELECT id, nome, descricao, preco_reais FROM produtos
           WHERE publicado = 1 AND nome LIKE ?`).all(`%${query}%`);
       }
       res.json({ modo: mode, total: products.length, produtos: products });

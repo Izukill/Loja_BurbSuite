@@ -21,13 +21,13 @@ async function buy(product, quantityInput, button, feedback) {
       body: JSON.stringify({
         produtoId: product.id,
         quantidade: quantity,
-        precoUnitarioCentavos: product.preco_centavos,
+        precoUnitarioReais: product.preco_reais,
         modo: mode
       })
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.erro);
-    feedback.textContent = `Compra simulada: ${data.quantidade} unidade(s), total ${currency.format(data.totalCentavos / 100)} · versão ${data.modo}. Nenhum pagamento realizado.`;
+    feedback.textContent = `Compra simulada: ${data.quantidade} unidade(s), total ${currency.format(data.totalReais)} · versão ${data.modo}. Nenhum pagamento realizado.`;
   } catch (error) {
     feedback.textContent = error.message || 'Não foi possível simular a compra.';
   } finally {
@@ -67,7 +67,7 @@ async function search() {
       description.textContent = product.descricao;
 
       const price = document.createElement('strong');
-      price.textContent = currency.format(product.preco_centavos / 100);
+      price.textContent = currency.format(product.preco_reais);
 
       const purchaseForm = document.createElement('form');
       purchaseForm.className = 'purchase-form';

@@ -3,7 +3,7 @@ import { Router } from 'express';
 export function ordersRouter(db) {
   const router = Router();
   const findProduct = db.prepare(`
-    SELECT id, preco_centavos FROM produtos WHERE id = ? AND publicado = 1
+    SELECT id, preco_reais FROM produtos WHERE id = ? AND publicado = 1
   `);
 
   router.post('/', (req, res) => {
@@ -12,7 +12,7 @@ export function ordersRouter(db) {
       return res.status(400).json({ erro: 'Envie os dados da compra em um objeto JSON.' });
     }
 
-    const { produtoId, quantidade, precoUnitarioCentavos, modo = 'vulneravel' } = body;
+    const { produtoId, quantidade, precoUnitarioReais, precoUnitarioCentavos, modo = 'vulneravel' } = body;
     if (!['vulneravel', 'corrigido'].includes(modo)) {
       return res.status(400).json({ erro: 'Modo deve ser vulneravel ou corrigido.' });
     }
@@ -31,23 +31,30 @@ export function ordersRouter(db) {
     let price;
 
     if (modo === 'vulneravel') {
-      //no modo vulneravel o preço enviado pelo cliente é aceito.
-      //validar tipo e limites não garante que este seja o preço oficial.
-      price = precoUnitarioCentavos;
+      // no modo vulneravel o preco enviado pelo cliente e aceito (suporta precoUnitarioReais ou precoUnitarioCentavos / 100)
+      if (precoUnitarioReais !== undefined) {
+        price = Number(precoUnitarioReais);
+      } else if (precoUnitarioCentavos !== undefined) {
+        price = Number(precoUnitarioCentavos) / 100;
+      }
     } else {
-      //correção: ignora completamente o preço enviado pelo cliente e usa o preço oficial do produto.
-      price = product.preco_centavos;
+      // correcao: ignora completamente o preco enviado pelo cliente e usa o preco oficial do produto
+      price = Number(product.preco_reais);
     }
 
-    if (!Number.isSafeInteger(price) || price < 1 ||
-        price > Math.floor(Number.MAX_SAFE_INTEGER / quantidade)) {
-      return res.status(400).json({ erro: 'Preço deve ser um inteiro positivo em centavos, com total dentro do limite numérico.' });
+    if (typeof price !== 'number' || Number.isNaN(price) || price <= 0 || !Number.isFinite(price) || price > 1000000) {
+      return res.status(400).json({ erro: 'Preço deve ser um número positivo em reais dentro do limite.' });
     }
+
+    const totalReais = Math.round(price * quantidade * 100) / 100;
 
     return res.status(201).json({
       produtoId,
       quantidade,
-      totalCentavos: price * quantidade,
+      precoUnitarioReais: price,
+      totalReais,
+      // Mantemos compatibilidade com totalCentavos para contratos legados
+      totalCentavos: Math.round(totalReais * 100),
       modo,
       simulacao: true
     });

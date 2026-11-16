@@ -12,7 +12,7 @@ export function createDatabase(path = databasePath) {
       id INTEGER PRIMARY KEY,
       nome TEXT NOT NULL,
       descricao TEXT NOT NULL,
-      preco_centavos INTEGER NOT NULL CHECK (preco_centavos >= 0),
+      preco_reais REAL NOT NULL CHECK (preco_reais >= 0),
       publicado INTEGER NOT NULL DEFAULT 1 CHECK (publicado IN (0, 1))
     );
   `);
@@ -23,14 +23,14 @@ export function createDatabase(path = databasePath) {
 
 export function seedDatabase(db) {
   const insert = db.prepare(`INSERT OR IGNORE INTO produtos
-    (id, nome, descricao, preco_centavos, publicado) VALUES (?, ?, ?, ?, ?)`);
+    (id, nome, descricao, preco_reais, publicado) VALUES (?, ?, ?, ?, ?)`);
 
   const products = [
-    [1, 'Teclado Aurora', 'Teclado compacto para sua mesa de estudos.', 15990, 1],
-    [2, 'Mouse Orbital', 'Precisão e conforto para o dia a dia.', 8990, 1],
-    [3, 'Headset Eclipse', 'Áudio para acompanhar suas próximas ideias.', 22990, 1],
-    [4, 'Caderno Pixel', 'Espaço para projetos, desenhos e descobertas.', 2990, 1],
-    [5, 'Protótipo confidencial', 'Produto fictício ainda não publicado no catálogo.', 99900, 0]
+    [1, 'Teclado Aurora', 'Teclado compacto para sua mesa de estudos.', 159.90, 1],
+    [2, 'Mouse Orbital', 'Precisão e conforto para o dia a dia.', 89.90, 1],
+    [3, 'Headset Eclipse', 'Áudio para acompanhar suas próximas ideias.', 229.90, 1],
+    [4, 'Caderno Pixel', 'Espaço para projetos, desenhos e descobertas.', 29.90, 1],
+    [5, 'Protótipo confidencial', 'Produto fictício ainda não publicado no catálogo.', 999.00, 0]
   ];
   
   for (const product of products) insert.run(...product);
