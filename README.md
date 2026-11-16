@@ -53,12 +53,12 @@ Cada seletor muda **somente seu respectivo módulo** (busca, compra ou contas). 
 Enviar JSON com `Content-Type: application/json` para `POST /api/compras`:
 
 ```json
-{"produtoId":1,"quantidade":1,"precoUnitarioCentavos":15990,"modo":"vulneravel"}
+{"produtoId":1,"quantidade":1,"precoUnitarioReais":159.90,"modo":"vulneravel"}
 ```
 
-Sucesso: status 201 e `{ "produtoId": 1, "quantidade": 1, "totalCentavos": 15990, "modo": "vulneravel", "simulacao": true }`.
+Sucesso: status 201 e `{ "produtoId": 1, "quantidade": 1, "precoUnitarioReais": 159.90, "totalReais": 159.90, "modo": "vulneravel", "simulacao": true }`.
 
-`modo` aceita `vulneravel` (padrão) ou `corrigido`. Na versão vulnerável, preço deve ser um inteiro positivo em centavos. Na corrigida, ele é ignorado e pode ser omitido. As duas versões exigem produto publicado/existente e quantidade inteira de 1 a 10, rejeitando total fora do limite de inteiros seguros do JavaScript. Entradas inválidas retornam 400; produto inexistente/não publicado, 404.
+`modo` aceita `vulneravel` (padrão) ou `corrigido`. Na versão vulnerável, o preço enviado em reais pelo cliente é aceito. Na corrigida, ele é ignorado e o valor oficial do catálogo é utilizado. As duas versões exigem produto publicado/existente e quantidade inteira de 1 a 10. Entradas inválidas retornam 400; produto inexistente/não publicado, 404.
 
 ## Demonstração
 

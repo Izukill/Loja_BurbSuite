@@ -41,14 +41,14 @@ Na página da loja, selecione a versão vulnerável da compra. No produto Teclad
 
 No Proxy → HTTP history, encontre POST /api/compras, clique com o botão direito e escolha Send to Repeater.
 
-No Repeater, altere precoUnitarioCentavos de 15990 para 100, mantendo os outros dados:
+No Repeater, altere precoUnitarioReais de 159.90 para 1.00, mantendo os outros dados:
 
 ```http
 POST /api/compras HTTP/1.1
 Host: 127.0.0.1:3000
 Content-Type: application/json
 
-{"produtoId":1,"quantidade":1,"precoUnitarioCentavos":100,"modo":"vulneravel"}
+{"produtoId":1,"quantidade":1,"precoUnitarioReais":1.00,"modo":"vulneravel"}
 ```
 
 Mantenha uma linha vazia entre os cabeçalhos e o JSON. Ao editar a requisição capturada, deixe o Burp atualizar o Content-Length automaticamente.
@@ -60,7 +60,8 @@ Clique em Send. O resultado esperado é:
 {
   "produtoId": 1,
   "quantidade": 1,
-  "totalCentavos": 100,
+  "precoUnitarioReais": 1,
+  "totalReais": 1,
   "modo": "vulneravel",
   "simulacao": true
 }
@@ -77,7 +78,7 @@ fetch('/api/compras', {
   body: JSON.stringify({
     produtoId: 1,
     quantidade: 1,
-    precoUnitarioCentavos: 100,
+    precoUnitarioReais: 1.00,
     modo: 'vulneravel'
   })
 })
@@ -85,7 +86,7 @@ fetch('/api/compras', {
   .then(resultado => console.log(resultado));
 ```
 
-O resultado aparecerá no Console com totalCentavos: 100. A página não será atualizada automaticamente.
+O resultado aparecerá no Console com totalReais: 1. A página não será atualizada automaticamente.
 
 Diferentemente da busca com SQL injection, o preço não possui um campo editável na interface. Por isso, usamos o Console para enviar a requisição com o valor alterado.
 

@@ -12,7 +12,7 @@ export function ordersRouter(db) {
       return res.status(400).json({ erro: 'Envie os dados da compra em um objeto JSON.' });
     }
 
-    const { produtoId, quantidade, precoUnitarioReais, precoUnitarioCentavos, modo = 'vulneravel' } = body;
+    const { produtoId, quantidade, precoUnitarioReais, modo = 'vulneravel' } = body;
     if (!['vulneravel', 'corrigido'].includes(modo)) {
       return res.status(400).json({ erro: 'Modo deve ser vulneravel ou corrigido.' });
     }
@@ -31,12 +31,8 @@ export function ordersRouter(db) {
     let price;
 
     if (modo === 'vulneravel') {
-      // no modo vulneravel o preco enviado pelo cliente e aceito (suporta precoUnitarioReais ou precoUnitarioCentavos / 100)
-      if (precoUnitarioReais !== undefined) {
-        price = Number(precoUnitarioReais);
-      } else if (precoUnitarioCentavos !== undefined) {
-        price = Number(precoUnitarioCentavos) / 100;
-      }
+      // no modo vulneravel o preco enviado pelo cliente e aceito
+      price = Number(precoUnitarioReais);
     } else {
       // correcao: ignora completamente o preco enviado pelo cliente e usa o preco oficial do produto
       price = Number(product.preco_reais);
@@ -53,8 +49,6 @@ export function ordersRouter(db) {
       quantidade,
       precoUnitarioReais: price,
       totalReais,
-      // Mantemos compatibilidade com totalCentavos para contratos legados
-      totalCentavos: Math.round(totalReais * 100),
       modo,
       simulacao: true
     });

@@ -105,13 +105,13 @@ test('Compras: validação e adulteração de preço', async (t) => {
       body: JSON.stringify({
         produtoId: 1,
         quantidade: 1,
-        precoUnitarioCentavos: 100,
+        precoUnitarioReais: 1.00,
         modo: 'vulneravel'
       })
     });
     assert.equal(res.status, 201);
     const data = await res.json();
-    assert.equal(data.totalCentavos, 100);
+    assert.equal(data.totalReais, 1.00);
   });
 
   await t.test('Modo corrigido ignora preço enviado e busca do banco', async () => {
@@ -121,13 +121,13 @@ test('Compras: validação e adulteração de preço', async (t) => {
       body: JSON.stringify({
         produtoId: 1,
         quantidade: 1,
-        precoUnitarioCentavos: 100,
+        precoUnitarioReais: 1.00,
         modo: 'corrigido'
       })
     });
     assert.equal(res.status, 201);
     const data = await res.json();
-    assert.equal(data.totalCentavos, 15990);
+    assert.equal(data.totalReais, 159.90);
   });
 });
 
