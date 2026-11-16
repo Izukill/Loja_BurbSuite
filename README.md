@@ -62,7 +62,7 @@ Sucesso: status 201 e `{ "produtoId": 1, "quantidade": 1, "totalCentavos": 15990
 
 ## Demonstração
 
-Siga [o roteiro do Burp](docs/DEMONSTRACAO.md). Com a Community, a identificação é manual: Proxy e Repeater não geram automaticamente um relatório de vulnerabilidades.
+Siga o [passo a passo para verificar projeto com Burp](docs/DEMONSTRACAO.md). Com a Community, a identificação é manual: Proxy e Repeater não geram automaticamente um relatório de vulnerabilidades.
 
 ## Organização
 
@@ -87,5 +87,3 @@ docs/                        contratos e roteiro da demonstração
 - [Edições do Burp](https://portswigger.net/burp)
 - [SQLite nativo do Node.js](https://nodejs.org/api/sqlite.html)
 - [Express](https://expressjs.com/en/starter/installing/)
-
-Ausência de alerta não comprova segurança. Os testes automatizados deste projeto verificam o comportamento didático; não são uma auditoria de segurança completa.
